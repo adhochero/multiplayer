@@ -26,16 +26,27 @@ export class Joystick {
 
     getStrength() {
         if (!this.isTouching) return { x: 0, y: 0 };
-
-        // Calculate the difference between start and end touch positions
+    
+        // Calculate displacement
         const deltaX = this.touchEndX - this.touchStartX;
         const deltaY = this.touchEndY - this.touchStartY;
-
-        // Normalize the values to be between -1 and 1
-        const maxMovement = 100;  // Max distance for full joystick range
-        const x = Math.min(Math.max(deltaX / maxMovement, -1), 1);
-        const y = Math.min(Math.max(deltaY / maxMovement, -1), 1);
-
+    
+        // Max movement distance for full joystick range
+        const maxMovement = 100;
+    
+        // Convert to -1 to 1 range
+        let x = deltaX / maxMovement;
+        let y = deltaY / maxMovement;
+    
+        // Calculate magnitude
+        const magnitude = Math.sqrt(x * x + y * y);
+    
+        // Normalize if magnitude > 1
+        if (magnitude > 1) {
+            x /= magnitude;
+            y /= magnitude;
+        }
+    
         return { x, y };
     }
 }

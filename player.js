@@ -20,12 +20,6 @@ export class Player {
         const joystickStrength = joystick.getStrength();
         let inputDirection = { x: joystickStrength.x, y: joystickStrength.y };
 
-        // Normalize diagonal movement
-        if (inputDirection.x !== 0 && inputDirection.y !== 0) {
-            inputDirection.x *= Math.SQRT1_2;
-            inputDirection.y *= Math.SQRT1_2;
-        }
-
         // Smooth input movement using lerp
         this.inputSmoothing.x = this.lerp(this.inputSmoothing.x, inputDirection.x, this.inputResponsiveness * deltaTime);
         this.inputSmoothing.y = this.lerp(this.inputSmoothing.y, inputDirection.y, this.inputResponsiveness * deltaTime);
