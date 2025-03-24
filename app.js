@@ -101,7 +101,7 @@ function draw(){
 
     context.save();
 
-    drawGrid(-(-player.x + canvas.width / 2), -(-player.y + canvas.height / 2));
+    drawGrid(-(camera.x + canvas.width / 2), -(camera.y + canvas.height / 2));
     context.translate(camera.x, camera.y);
     player.draw(context);
 
