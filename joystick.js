@@ -10,6 +10,8 @@ export class Joystick {
     startTouch(event) {
         this.touchStartX = event.touches[0].clientX;
         this.touchStartY = event.touches[0].clientY;
+        this.touchEndX = this.touchStartX; // Initialize to prevent incorrect displacement
+        this.touchEndY = this.touchStartY;
         this.isTouching = true;
     }
 
