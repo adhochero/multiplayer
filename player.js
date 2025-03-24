@@ -40,13 +40,13 @@ export class Player {
     draw(context) {
         context.imageSmoothingEnabled = false;
         // Draw the player image at its position
-        context.drawImage(this.image, this.x, this.y, this.width, this.height);
+        context.drawImage(this.image, this.x - this.width / 2, this.y - this.height / 2, this.width, this.height);
 
         // Draw player name
         context.fillStyle = 'white';
         context.font = '20px "Courier New", monospace';
         let textWidth = context.measureText(this.name).width;
-        context.fillText(this.name, this.x + this.width / 2 - textWidth / 2, this.y - 12);
+        context.fillText(this.name, this.x - textWidth / 2, this.y - 40);
     }
 
     lerp(start, end, t) {
