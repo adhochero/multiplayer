@@ -24,7 +24,7 @@ function init(){
     adjustCanvasSize();
 
     // Initialize player and joystick
-    player = new Player('mr. sphere', './assets/pixel_sphere_16x16.png', 30, 30, canvas.width / 2, canvas.height / 2);
+    player = new Player('mr. sphere', './assets/pixel_sphere_16x16.png', 50, 50, canvas.width / 2, canvas.height / 2);
     joystick = new Joystick();
     listenForJoystickEvents();
 

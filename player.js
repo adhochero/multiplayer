@@ -38,6 +38,7 @@ export class Player {
     }
 
     draw(context) {
+        context.imageSmoothingEnabled = false;
         // Draw the player image at its position
         context.drawImage(this.image, this.x, this.y, this.width, this.height);
 
