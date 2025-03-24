@@ -44,7 +44,7 @@ export class Player {
 
         // Draw player name
         context.fillStyle = 'white';
-        context.font = '20px Tiny5, monospace';
+        context.font = '20px Courier New';
         let textWidth = context.measureText(this.name).width;
         context.fillText(this.name, this.x + this.width / 2 - textWidth / 2, this.y - 12);
     }
