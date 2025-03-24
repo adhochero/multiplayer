@@ -44,9 +44,9 @@ export class Player {
 
         // Draw player name
         context.fillStyle = 'white';
-        context.font = '20px Helvetica';
+        context.font = '20px Tiny5, monospace';
         let textWidth = context.measureText(this.name).width;
-        context.fillText(this.name, this.x + this.width / 2 - textWidth / 2, this.y - 10);
+        context.fillText(this.name, this.x + this.width / 2 - textWidth / 2, this.y - 12);
     }
 
     lerp(start, end, t) {
