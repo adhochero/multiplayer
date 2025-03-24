@@ -17,7 +17,16 @@ let joystick;
 window.onload = init;
 window.onresize = adjustCanvasSize;
 
+function preventDefaultTouchBehavior() {
+    // Add event listeners to prevent default touch actions globally
+    document.addEventListener('touchstart', (event) => event.preventDefault(), { passive: false });
+    document.addEventListener('touchmove', (event) => event.preventDefault(), { passive: false });
+    document.addEventListener('touchend', (event) => event.preventDefault(), { passive: false });
+    document.addEventListener('touchcancel', (event) => event.preventDefault(), { passive: false });
+}
+
 function init(){
+    preventDefaultTouchBehavior();
     canvas = document.getElementById('canvas');
     context = canvas.getContext('2d');
 
@@ -53,22 +62,18 @@ function adjustCanvasSize() {
 function listenForJoystickEvents()
 {
     canvas.addEventListener('touchstart', (event) => {
-        event.preventDefault();
         joystick.startTouch(event);
     }, false);
 
     canvas.addEventListener('touchmove', (event) => {
-        event.preventDefault();
         joystick.moveTouch(event);
     }, false);
 
     canvas.addEventListener('touchend', (event) => {
-        event.preventDefault();
         joystick.endTouch();
     }, false);
 
     canvas.addEventListener('touchcancel', (event) => {
-        event.preventDefault();
         joystick.endTouch();
     }, false);
 }
