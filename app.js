@@ -12,95 +12,95 @@ document.addEventListener('DOMContentLoaded', function() {
     let userCount = 0;
 
     // ========== Supabase Setup ==========
-        // Replace with your Supabase URL and public (anon) key
-        const supabaseUrl = 'https://gqbeyhseepsnhxjblxzh.supabase.co';
-        const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdxYmV5aHNlZXBzbmh4amJseHpoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI3Njk5NDksImV4cCI6MjA1ODM0NTk0OX0.c-3qmp9WTVOEVMlJnSS4b128roCBHd978t3lGebWq4s';
+    // Replace with your Supabase URL and public (anon) key
+    const supabaseUrl = 'https://gqbeyhseepsnhxjblxzh.supabase.co';
+    const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdxYmV5aHNlZXBzbmh4amJseHpoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI3Njk5NDksImV4cCI6MjA1ODM0NTk0OX0.c-3qmp9WTVOEVMlJnSS4b128roCBHd978t3lGebWq4s';
         
-        const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
+    const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
         
-        // Join the players channel
-        const channel = supabase.channel('players', {
-          config: {
-            broadcast: { self: true },
-            presence: { key: userId } // Tracks this user
-          }
-        });
+    // Join the players channel
+    const channel = supabase.channel('players', {
+      config: {
+        broadcast: { self: true },
+        presence: { key: userId } // Tracks this user
+      }
+    });
 
-        // ========== Track Presence ==========
-        channel.on('presence', { event: 'sync' }, () => {
-            const state = channel.presenceState();
+    // ========== Track Presence ==========
+    channel.on('presence', { event: 'sync' }, () => {
+        const state = channel.presenceState();
             
-            // Update connection status
-          if (Object.keys(state).length > 0 && !isConnected) {
-              isConnected = true;
-            }
+      // Update connection status
+      if (Object.keys(state).length > 0 && !isConnected) {
+          isConnected = true;
+      }
             
-            // Clean up disconnected users' cursors
-            const connectedUserIds = Object.keys(state);
-            Object.keys(players).forEach(id => {
-              if (!connectedUserIds.includes(id) && id !== userId) {
-                delete players[id];
-              }
-            });
-          });
+      // Clean up disconnected users' cursors
+      const connectedUserIds = Object.keys(state);
+      Object.keys(players).forEach(id => {
+        if (!connectedUserIds.includes(id) && id !== userId) {
+          delete players[id];
+        }
+      });
+    });
           
-          // Also handle when users leave (presence diff)
-          channel.on('presence', { event: 'leave' }, ({ leftPresences }) => {
-            leftPresences.forEach(presence => {
-              const leftUserId = presence.key;
-              if (players[leftUserId]) {
-                delete players[leftUserId];
-              }
-            });
-          });
+    // Also handle when users leave (presence diff)
+    channel.on('presence', { event: 'leave' }, ({ leftPresences }) => {
+      leftPresences.forEach(presence => {
+        const leftUserId = presence.key;
+        if (players[leftUserId]) {
+          delete players[leftUserId];
+        }
+      });
+    });
         
-          // Handle player broadcasts
-        channel.on('broadcast', { event: 'player-position' }, (payload) => {
-            const { senderId, x, y } = payload.payload;
+    // Handle player broadcasts
+    channel.on('broadcast', { event: 'player-position' }, (payload) => {
+      const { senderId, x, y } = payload.payload;
             
-            if (senderId !== userId) {
-              if (!players[senderId]) {
-                players[senderId] = {
-                  x: x,
-                  y: y
-                };
-              } else {
-                // Update existing cursor
-                players[senderId].x = x;
-                players[senderId].y = y;
-              }
-            }
-          });
+      if (senderId !== userId) {
+        if (!players[senderId]) {
+          players[senderId] = {
+            x: x,
+            y: y
+          };
+        } else {
+          // Update existing cursor
+          players[senderId].x = x;
+          players[senderId].y = y;
+        }
+      }
+    });
 
-          // Connect to the channel
-        channel.subscribe(async (status) => {
-            if (status === 'SUBSCRIBED') {
-              isConnected = true;
-            } else {
-              isConnected = false;
-            }
-          });
+    // Connect to the channel
+    channel.subscribe(async (status) => {
+      if (status === 'SUBSCRIBED') {
+        isConnected = true;
+      } else {
+        isConnected = false;
+      }
+    });
 
-          // ========== Page Visibility and Unload Handlers ==========
-        // Remove user when page is closed/navigated away
-        window.addEventListener('beforeunload', () => {
-            if (channel) {
-              // Remove presence when leaving
-              channel.untrack();
-              channel.unsubscribe();
-            }
-          });
+    // ========== Page Visibility and Unload Handlers ==========
+    // Remove user when page is closed/navigated away
+    window.addEventListener('beforeunload', () => {
+      if (channel) {
+        // Remove presence when leaving
+        channel.untrack();
+        channel.unsubscribe();
+      }
+    });
           
-          // Handle tab visibility changes
-          document.addEventListener('visibilitychange', () => {
-            if (document.visibilityState === 'hidden') {
-              // User switched to another tab or minimized window
-              channel.untrack();
-            } else if (document.visibilityState === 'visible' && channel) {
-              // User returned to the page
-              channel.track({});
-            }
-          });
+    // Handle tab visibility changes
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden') {
+        // User switched to another tab or minimized window
+        channel.untrack();
+      } else if (document.visibilityState === 'visible' && channel) {
+        // User returned to the page
+        channel.track({});
+      }
+    });
 
 let canvas;
 let context;
@@ -111,6 +111,14 @@ let camera = {x: 0, y: 0};
 let cameraFollowSpeed = 0.05;
 let lastTimeStamp = 0;
 let fps;
+
+let input;
+let userText = "";
+let inputBox = {x: 520, y: 580, width: 100, height: 50};
+function isInsideInputBox(x, y){
+  return x >= inputBox.x && x <= inputBox.x + inputBox.width &&
+         y >= inputBox.y && y <= inputBox.y + inputBox.height;
+}
 
 let player;
 let joystick;
@@ -134,6 +142,42 @@ function init(){
     canvas.width = canvasResolutionWidth;
     canvas.height = canvasResolutionHeight;
     adjustCanvasSize();
+
+    input = document.getElementById('textInput');
+
+// Handle touch/click input
+canvas.addEventListener('pointerdown', (event) => {
+  const rect = canvas.getBoundingClientRect();
+  const x = event.clientX - rect.left;
+  const y = event.clientY - rect.top;
+  
+  if (isInsideInputBox(x, y)) {
+      // Move input field to canvas position (for mobile keyboard activation)
+      input.style.position = "absolute";
+      input.style.top = `${y + rect.top}px`;
+      input.style.left = `${x + rect.left}px`;
+      input.style.width = `${inputBox.width}px`;
+      input.style.height = `${inputBox.height}px`;
+      input.style.opacity = 1;
+
+      input.value = userText;
+      input.focus();
+  } else {
+      // Hide input if tapping outside
+      input.blur();
+  }
+});
+
+// Capture input value and update canvas
+input.addEventListener('input', (e) => {
+  userText = e.target.value;
+});
+
+// Hide input when losing focus
+input.addEventListener('blur', () => {
+  input.style.top = "-100px";
+  input.style.opacity = 0;
+});
 
     // Initialize player and joystick
     player = new Player('mr. sphere', './assets/pixel_sphere_16x16.png', 50, 50, canvas.width / 2, canvas.height / 2);
@@ -213,6 +257,8 @@ function update(deltaTime){
           }
         });
       }
+
+      player.name = input;
 }
 
 function draw(){
@@ -237,6 +283,14 @@ function draw(){
       }
 
     context.restore();
+
+    context.strokeStyle = "white";
+    context.strokeRect(inputBox.x, inputBox.y, inputBox.width, inputBox.height);
+    
+    // Draw user text
+    context.font = "30px Arial";
+    context.fillStyle = "white";
+    context.fillText(userText, inputBox.x + 10, inputBox.y + 35);
 }
 
 function drawOthers(x, y){
