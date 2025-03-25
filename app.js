@@ -120,7 +120,7 @@ function lerp(start, end, t){
 function drawGrid(offsetX, offsetY) {
     let gridSize = 50; // Size of each grid cell
     context.strokeStyle = "#cccccc"; // Light grey color
-    context.lineWidth = 1;
+    context.lineWidth = 3;
 
     // Find the top-left corner of the grid relative to the camera
     let startX = Math.floor(offsetX / gridSize) * gridSize - offsetX;
