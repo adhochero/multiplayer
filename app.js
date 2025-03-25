@@ -1,6 +1,58 @@
 import { Player } from './player.js';
 import { Joystick } from './joystick.js';
 
+document.addEventListener('DOMContentLoaded', function() {
+
+    const players = {};
+
+    // Generate a random user ID
+    const userId = Math.random().toString(36).substring(2, 15);
+    let localPlayerPos = { x: 0, y: 0 };
+    let isConnected = false;
+    let userCount = 0;
+
+    // ========== Supabase Setup ==========
+        // Replace with your Supabase URL and public (anon) key
+        const supabaseUrl = 'https://gqbeyhseepsnhxjblxzh.supabase.co';
+        const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdxYmV5aHNlZXBzbmh4amJseHpoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI3Njk5NDksImV4cCI6MjA1ODM0NTk0OX0.c-3qmp9WTVOEVMlJnSS4b128roCBHd978t3lGebWq4s';
+        
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
+        
+        // Join the players channel
+        const channel = supabase.channel('players', {
+          config: {
+            broadcast: { self: true },
+            presence: { key: userId }
+          }
+        });
+        
+          // Handle player broadcasts
+        channel.on('broadcast', { event: 'player-position' }, (payload) => {
+            const { senderId, x, y } = payload.payload;
+            
+            if (senderId !== userId) {
+              if (!players[senderId]) {
+                players[senderId] = {
+                  x: x,
+                  y: y
+                };
+              } else {
+                // Update existing cursor
+                players[senderId].x = x;
+                players[senderId].y = y;
+              }
+            }
+          });
+
+          // Connect to the channel
+        channel.subscribe(async (status) => {
+            if (status === 'SUBSCRIBED') {
+              isConnected = true;
+            } else {
+              isConnected = false;
+            }
+          });
+
 let canvas;
 let context;
 let canvasViewportPercentage = 0.9;
@@ -93,8 +145,25 @@ function gameLoop(timeStamp){
 }
 
 function update(deltaTime){
-    console.log('fps: ' + fps);
+    //console.log('fps: ' + fps);
     player.update(deltaTime, joystick);
+
+    localPlayerPos = {
+        x: player.x,
+        y: player.y
+      };
+
+      if (isConnected) {
+        channel.send({
+          type: 'broadcast',
+          event: 'player-position',
+          payload: {
+            senderId: userId,
+            x: localPlayerPos.x,
+            y: localPlayerPos.y
+          }
+        });
+      }
 }
 
 function draw(){
@@ -108,9 +177,23 @@ function draw(){
 
     drawGrid(-(camera.x + canvas.width / 2), -(camera.y + canvas.height / 2));
     context.translate(camera.x, camera.y);
+
     player.draw(context);
+    //draw other players
+    for (const id in players) {
+        if (id !== userId) {
+          const player = players[id];
+          drawOthers(player.x, player.y);
+        }
+      }
 
     context.restore();
+}
+
+function drawOthers(x, y){
+    let image = new Image();
+    image.src = './assets/pixel_sphere_16x16.png'
+    context.drawImage(image, x - 25, y - 25, 50, 50);
 }
 
 function lerp(start, end, t){
@@ -143,3 +226,4 @@ function drawGrid(offsetX, offsetY) {
     }
 }
 
+});
