@@ -22,9 +22,37 @@ document.addEventListener('DOMContentLoaded', function() {
         const channel = supabase.channel('players', {
           config: {
             broadcast: { self: true },
-            presence: { key: userId }
+            presence: { key: userId } // Tracks this user
           }
         });
+
+        // ========== Track Presence ==========
+        channel.on('presence', { event: 'sync' }, () => {
+            const state = channel.presenceState();
+            
+            // Update connection status
+          if (Object.keys(state).length > 0 && !isConnected) {
+              isConnected = true;
+            }
+            
+            // Clean up disconnected users' cursors
+            const connectedUserIds = Object.keys(state);
+            Object.keys(players).forEach(id => {
+              if (!connectedUserIds.includes(id) && id !== userId) {
+                delete players[id];
+              }
+            });
+          });
+          
+          // Also handle when users leave (presence diff)
+          channel.on('presence', { event: 'leave' }, ({ leftPresences }) => {
+            leftPresences.forEach(presence => {
+              const leftUserId = presence.key;
+              if (players[leftUserId]) {
+                delete players[leftUserId];
+              }
+            });
+          });
         
           // Handle player broadcasts
         channel.on('broadcast', { event: 'player-position' }, (payload) => {
@@ -50,6 +78,27 @@ document.addEventListener('DOMContentLoaded', function() {
               isConnected = true;
             } else {
               isConnected = false;
+            }
+          });
+
+          // ========== Page Visibility and Unload Handlers ==========
+        // Remove user when page is closed/navigated away
+        window.addEventListener('beforeunload', () => {
+            if (channel) {
+              // Remove presence when leaving
+              channel.untrack();
+              channel.unsubscribe();
+            }
+          });
+          
+          // Handle tab visibility changes
+          document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'hidden') {
+              // User switched to another tab or minimized window
+              channel.untrack();
+            } else if (document.visibilityState === 'visible' && channel) {
+              // User returned to the page
+              channel.track({});
             }
           });
 
