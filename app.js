@@ -1,5 +1,6 @@
 import { Player } from './player.js';
 import { Joystick } from './joystick.js';
+import { WordDisplay } from './talking.js';
 
 document.addEventListener('DOMContentLoaded', function() {
 
@@ -100,7 +101,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // User returned to the page
         channel.track({});
       }
-    });
+    });  
 
 let canvas;
 let context;
@@ -112,16 +113,9 @@ let cameraFollowSpeed = 0.05;
 let lastTimeStamp = 0;
 let fps;
 
-let input;
-let userText = "";
-let inputBox = {x: 520, y: 580, width: 100, height: 50};
-function isInsideInputBox(x, y){
-  return x >= inputBox.x && x <= inputBox.x + inputBox.width &&
-         y >= inputBox.y && y <= inputBox.y + inputBox.height;
-}
-
 let player;
 let joystick;
+let wordDisplay;
 
 window.onload = init;
 window.onresize = adjustCanvasSize;
@@ -143,49 +137,57 @@ function init(){
     canvas.height = canvasResolutionHeight;
     adjustCanvasSize();
 
-    input = document.getElementById('textInput');
-
-// Handle touch/click input
-canvas.addEventListener('pointerdown', (event) => {
-  const rect = canvas.getBoundingClientRect();
-  const x = event.clientX - rect.left;
-  const y = event.clientY - rect.top;
-  
-  if (isInsideInputBox(x, y)) {
-      // Move input field to canvas position (for mobile keyboard activation)
-      input.style.position = "absolute";
-      input.style.top = `${y + rect.top}px`;
-      input.style.left = `${x + rect.left}px`;
-      input.style.width = `${inputBox.width}px`;
-      input.style.height = `${inputBox.height}px`;
-      input.style.opacity = 1;
-
-      input.value = userText;
-      input.focus();
-  } else {
-      // Hide input if tapping outside
-      input.blur();
-  }
-});
-
-// Capture input value and update canvas
-input.addEventListener('input', (e) => {
-  userText = e.target.value;
-});
-
-// Hide input when losing focus
-input.addEventListener('blur', () => {
-  input.style.top = "-100px";
-  input.style.opacity = 0;
-});
-
     // Initialize player and joystick
     player = new Player('mr. sphere', './assets/pixel_sphere_16x16.png', 50, 50, canvas.width / 2, canvas.height / 2);
     joystick = new Joystick();
     listenForJoystickEvents();
 
+    wordDisplay = new WordDisplay(player.x, player.y, context);
+
     camera.x = -player.x + canvas.width / 2;
     camera.y = -player.y + canvas.height / 2;
+
+    const input = document.createElement("input");
+input.type = "text";
+input.style.position = "absolute";
+input.style.opacity = "0";
+input.style.pointerEvents = "none";
+document.body.appendChild(input);
+
+// Add event listener to canvas
+canvas.addEventListener("touchstart", (event) => {
+  const rect = canvas.getBoundingClientRect();
+  const touch = event.touches[0]; // Get the first touch point
+  const tapX = touch.clientX - rect.left;
+  const tapY = touch.clientY - rect.top;
+
+  const centerX = canvas.width / 2;
+  const centerY = canvas.height / 2;
+  const tapRadius = 50; // 50 pixels of leeway
+
+  const distance = Math.sqrt((tapX - centerX) ** 2 + (tapY - centerY) ** 2);
+
+  if (distance <= tapRadius) {
+      input.focus(); // Activate the keyboard
+  } else {
+      input.blur(); // Hide the keyboard
+  }
+
+  event.preventDefault(); // Prevents scrolling on mobile
+});
+
+// Forward input to WordDisplay
+input.addEventListener("input", (event) => {
+  wordDisplay.currentWord = event.target.value;
+});
+
+// Clear input on finalize
+input.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") {
+      wordDisplay.finalizeWord();
+      input.value = ""; // Clear the hidden input
+  }
+});
 
     //start the first frame request
     window.requestAnimationFrame(gameLoop);
@@ -241,6 +243,8 @@ function update(deltaTime){
     //console.log('fps: ' + fps);
     player.update(deltaTime, joystick);
 
+    wordDisplay.updatePosition(player.x, player.y -170);
+
     localPlayerPos = {
         x: player.x,
         y: player.y
@@ -257,8 +261,6 @@ function update(deltaTime){
           }
         });
       }
-
-      player.name = input;
 }
 
 function draw(){
@@ -280,17 +282,11 @@ function draw(){
           const player = players[id];
           drawOthers(player.x, player.y);
         }
-      }
+    }
+
+    wordDisplay.draw();
 
     context.restore();
-
-    context.strokeStyle = "white";
-    context.strokeRect(inputBox.x, inputBox.y, inputBox.width, inputBox.height);
-    
-    // Draw user text
-    context.font = "30px Arial";
-    context.fillStyle = "white";
-    context.fillText(userText, inputBox.x + 10, inputBox.y + 35);
 }
 
 function drawOthers(x, y){
