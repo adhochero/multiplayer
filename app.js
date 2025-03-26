@@ -147,11 +147,16 @@ function init(){
     camera.x = -player.x + canvas.width / 2;
     camera.y = -player.y + canvas.height / 2;
 
-    const input = document.createElement("input");
+// Create a tiny input field for keyboard activation
+const input = document.createElement("input");
 input.type = "text";
 input.style.position = "absolute";
+input.style.width = "1px";
+input.style.height = "1px";
 input.style.opacity = "0";
-input.style.pointerEvents = "none";
+input.style.border = "none";
+input.style.outline = "none";
+input.style.zIndex = "-1"; // Keeps it out of sight but interactive
 document.body.appendChild(input);
 
 // Add event listener to canvas
@@ -168,6 +173,8 @@ canvas.addEventListener("touchstart", (event) => {
   const distance = Math.sqrt((tapX - centerX) ** 2 + (tapY - centerY) ** 2);
 
   if (distance <= tapRadius) {
+      input.style.left = `${touch.clientX}px`; // Move input to tap position
+      input.style.top = `${touch.clientY}px`;
       input.focus(); // Activate the keyboard
   } else {
       input.blur(); // Hide the keyboard
@@ -186,6 +193,7 @@ input.addEventListener("keydown", (event) => {
   if (event.key === "Enter") {
       wordDisplay.finalizeWord();
       input.value = ""; // Clear the hidden input
+      input.blur(); // Close keyboard
   }
 });
 
