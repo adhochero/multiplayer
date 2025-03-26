@@ -180,19 +180,7 @@ function init(){
       event.preventDefault(); // Stop accidental zooming/scrolling
   });
   
-  // Capture input and send it to WordDisplay
-  input.addEventListener("input", () => {
-      wordDisplay.currentWord = input.value;
-  });
-  
-  // Enter key finalizes the word
-  input.addEventListener("keydown", (event) => {
-      if (event.key === "Enter") {
-          wordDisplay.finalizeWord();
-          input.value = ""; // Reset input
-          input.blur(); // Close keyboard
-      }
-  });
+ 
 
     //start the first frame request
     window.requestAnimationFrame(gameLoop);
