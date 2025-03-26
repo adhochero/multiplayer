@@ -147,55 +147,52 @@ function init(){
     camera.x = -player.x + canvas.width / 2;
     camera.y = -player.y + canvas.height / 2;
 
-// Create a tiny input field for keyboard activation
-const input = document.createElement("input");
-input.type = "text";
-input.style.position = "absolute";
-input.style.width = "1px";
-input.style.height = "1px";
-input.style.opacity = "0";
-input.style.border = "none";
-input.style.outline = "none";
-input.style.zIndex = "-1"; // Keeps it out of sight but interactive
-document.body.appendChild(input);
+    const input = document.createElement("input");
+    input.type = "text";
+    input.style.position = "absolute";
+    input.style.top = "-100px"; // Keep it way off-screen but focusable
+    input.style.left = "-100px";
+    input.style.width = "1px";
+    input.style.height = "1px";
+    input.style.opacity = "0";
+    input.style.border = "none";
+    input.style.outline = "none";
+    document.body.appendChild(input);
 
-// Add event listener to canvas
-canvas.addEventListener("touchstart", (event) => {
-  const rect = canvas.getBoundingClientRect();
-  const touch = event.touches[0]; // Get the first touch point
-  const tapX = touch.clientX - rect.left;
-  const tapY = touch.clientY - rect.top;
-
-  const centerX = canvas.width / 2;
-  const centerY = canvas.height / 2;
-  const tapRadius = 50; // 50 pixels of leeway
-
-  const distance = Math.sqrt((tapX - centerX) ** 2 + (tapY - centerY) ** 2);
-
-  if (distance <= tapRadius) {
-      input.style.left = `${touch.clientX}px`; // Move input to tap position
-      input.style.top = `${touch.clientY}px`;
-      input.focus(); // Activate the keyboard
-  } else {
-      input.blur(); // Hide the keyboard
-  }
-
-  event.preventDefault(); // Prevents scrolling on mobile
-});
-
-// Forward input to WordDisplay
-input.addEventListener("input", (event) => {
-  wordDisplay.currentWord = event.target.value;
-});
-
-// Clear input on finalize
-input.addEventListener("keydown", (event) => {
-  if (event.key === "Enter") {
-      wordDisplay.finalizeWord();
-      input.value = ""; // Clear the hidden input
-      input.blur(); // Close keyboard
-  }
-});
+    canvas.addEventListener("touchend", (event) => {
+      const rect = canvas.getBoundingClientRect();
+      const touch = event.changedTouches[0];
+      const tapX = touch.clientX - rect.left;
+      const tapY = touch.clientY - rect.top;
+  
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+      const tapRadius = 50; // 50px leeway
+  
+      const distance = Math.sqrt((tapX - centerX) ** 2 + (tapY - centerY) ** 2);
+  
+      if (distance <= tapRadius) {
+          input.focus(); // This should now reliably open the keyboard
+      } else {
+          input.blur(); // Close keyboard if tapping elsewhere
+      }
+  
+      event.preventDefault(); // Stop accidental zooming/scrolling
+  });
+  
+  // Capture input and send it to WordDisplay
+  input.addEventListener("input", () => {
+      wordDisplay.currentWord = input.value;
+  });
+  
+  // Enter key finalizes the word
+  input.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+          wordDisplay.finalizeWord();
+          input.value = ""; // Reset input
+          input.blur(); // Close keyboard
+      }
+  });
 
     //start the first frame request
     window.requestAnimationFrame(gameLoop);
