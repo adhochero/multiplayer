@@ -57,18 +57,20 @@ document.addEventListener('DOMContentLoaded', function() {
         
     // Handle player broadcasts
     channel.on('broadcast', { event: 'player-position' }, (payload) => {
-      const { senderId, x, y } = payload.payload;
+      const { senderId, x, y, word } = payload.payload;
             
       if (senderId !== userId) {
         if (!players[senderId]) {
           players[senderId] = {
             x: x,
-            y: y
+            y: y,
+            word: word
           };
         } else {
           // Update existing cursor
           players[senderId].x = x;
           players[senderId].y = y;
+          players[senderId].word = word;
         }
       }
     });
@@ -251,7 +253,8 @@ function update(deltaTime){
           payload: {
             senderId: userId,
             x: localPlayerPos.x,
-            y: localPlayerPos.y
+            y: localPlayerPos.y,
+            word: wordDisplay.displayedWord
           }
         });
       }
@@ -275,6 +278,7 @@ function draw(){
         if (id !== userId) {
           const player = players[id];
           drawOthers(player.x, player.y);
+          drawOthersWords(player.x, player.y, player.word)
         }
     }
 
@@ -290,6 +294,13 @@ function drawOthers(x, y){
     let image = new Image();
     image.src = './assets/pixel_sphere_16x16.png'
     context.drawImage(image, x - 25, y - 25, 50, 50);
+}
+
+function drawOthersWords(x, y, word){
+    context.fillStyle = 'white';
+    context.font = 'bold 28px "Courier New", monospace';
+    let textWidth = context.measureText(word).width;
+    context.fillText(word, x - textWidth / 2, y - 40);
 }
 
 function lerp(start, end, t){

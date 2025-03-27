@@ -79,7 +79,7 @@ export class WordDisplay {
     }
 
     draw() {
-        this.ctx.font = '28px "Courier New", monospace';
+        this.ctx.font = 'bold 28px "Courier New", monospace';
         this.ctx.fillStyle = "white";
 
         const now = Date.now();
