@@ -116,6 +116,7 @@ let fps;
 let player;
 let joystick;
 let wordDisplay;
+let speakIcon;
 
 window.onload = init;
 window.onresize = adjustCanvasSize;
@@ -142,6 +143,8 @@ function init(){
     joystick = new Joystick();
     listenForJoystickEvents();
 
+    speakIcon = new Image();
+    speakIcon.src = './assets/speak.png'
     wordDisplay = new WordDisplay(player.x, player.y, context);
 
     camera.x = -player.x + canvas.width / 2;
@@ -180,8 +183,6 @@ function init(){
       event.preventDefault(); // Stop accidental zooming/scrolling
   });
   
- 
-
     //start the first frame request
     window.requestAnimationFrame(gameLoop);
 }
@@ -280,6 +281,9 @@ function draw(){
     wordDisplay.draw();
 
     context.restore();
+
+    context.imageSmoothingEnabled = false;
+    context.drawImage(speakIcon, 600, 610, 50, 50);
 }
 
 function drawOthers(x, y){
