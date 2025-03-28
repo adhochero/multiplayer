@@ -165,7 +165,6 @@ function init(){
     document.body.appendChild(input);
 
     canvas.addEventListener("touchend", (event) => {
-      playThump();
       const rect = canvas.getBoundingClientRect();
       const touch = event.changedTouches[0];
       const tapX = touch.clientX - rect.left;
@@ -178,6 +177,7 @@ function init(){
       const distance = Math.sqrt((tapX - centerX) ** 2 + (tapY - centerY) ** 2);
   
       if (distance <= tapRadius) {
+          playThump();
           input.focus(); // This should now reliably open the keyboard
       } else {
           input.blur(); // Close keyboard if tapping elsewhere
@@ -335,48 +335,22 @@ function drawGrid(offsetX, offsetY) {
     }
 }
 
-const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-
-// Run a silent sound once to "warm up" the AudioContext
-function warmUpAudio() {
-    if (audioContext.state === "suspended") {
-        audioContext.resume();
-    }
-    
-    const silentOscillator = audioContext.createOscillator();
-    const silentGain = audioContext.createGain();
-    
-    silentGain.gain.value = 0; // Silence
-    silentOscillator.connect(silentGain);
-    silentGain.connect(audioContext.destination);
-
-    silentOscillator.start();
-    silentOscillator.stop(audioContext.currentTime + 0.05); // Stops after 50ms
-}
-
-// Ensure the warm-up happens on the first user interaction
-document.addEventListener("touchstart", warmUpAudio, { once: true });
-
-// Now the real thump function
 function playThump() {
-    if (audioContext.state === "suspended") {
-        audioContext.resume();
-    }
+  const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  const oscillator = audioContext.createOscillator();
+  const gainNode = audioContext.createGain();
 
-    const oscillator = audioContext.createOscillator();
-    const gainNode = audioContext.createGain();
+  oscillator.type = "sine";  // Low-frequency sine wave for a soft "thump"
+  oscillator.frequency.setValueAtTime(50, audioContext.currentTime); // 50 Hz for a deep bass feel
 
-    oscillator.type = "sine";
-    oscillator.frequency.setValueAtTime(50, audioContext.currentTime);
+  gainNode.gain.setValueAtTime(1, audioContext.currentTime);
+  gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1); // Fade out quickly
 
-    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime); // Lower initial gain
-    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1); 
+  oscillator.connect(gainNode);
+  gainNode.connect(audioContext.destination);
 
-    oscillator.connect(gainNode);
-    gainNode.connect(audioContext.destination);
-
-    oscillator.start();
-    oscillator.stop(audioContext.currentTime + 0.1);
+  oscillator.start();
+  oscillator.stop(audioContext.currentTime + 0.1); // Stop after 100ms
 }
 
 });
