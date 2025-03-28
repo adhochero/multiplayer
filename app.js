@@ -165,6 +165,7 @@ function init(){
     document.body.appendChild(input);
 
     canvas.addEventListener("touchend", (event) => {
+      playThump();
       const rect = canvas.getBoundingClientRect();
       const touch = event.changedTouches[0];
       const tapX = touch.clientX - rect.left;
@@ -188,6 +189,7 @@ function init(){
     //start the first frame request
     window.requestAnimationFrame(gameLoop);
 }
+
 
 function adjustCanvasSize() {
     // Calculate the scale based on the width and height
@@ -331,6 +333,24 @@ function drawGrid(offsetX, offsetY) {
         context.lineTo(canvas.width, y);
         context.stroke();
     }
+}
+
+function playThump() {
+  const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  const oscillator = audioContext.createOscillator();
+  const gainNode = audioContext.createGain();
+
+  oscillator.type = "sine";  // Low-frequency sine wave for a soft "thump"
+  oscillator.frequency.setValueAtTime(50, audioContext.currentTime); // 50 Hz for a deep bass feel
+
+  gainNode.gain.setValueAtTime(1, audioContext.currentTime);
+  gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1); // Fade out quickly
+
+  oscillator.connect(gainNode);
+  gainNode.connect(audioContext.destination);
+
+  oscillator.start();
+  oscillator.stop(audioContext.currentTime + 0.1); // Stop after 100ms
 }
 
 });
