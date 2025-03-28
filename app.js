@@ -189,7 +189,7 @@ canvas.addEventListener("pointerup", (event) => {
 
     if (startDistance <= tapRadius && endDistance <= tapRadius) {
         playThump();
-        setTimeout(() => input.focus(), 0); // Ensure keyboard opens
+        setTimeout(() => input.focus(), 50); // Ensure keyboard opens
     } else {
         input.blur();
     }
