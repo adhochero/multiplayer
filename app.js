@@ -337,25 +337,46 @@ function drawGrid(offsetX, offsetY) {
 
 const audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
+// Run a silent sound once to "warm up" the AudioContext
+function warmUpAudio() {
+    if (audioContext.state === "suspended") {
+        audioContext.resume();
+    }
+    
+    const silentOscillator = audioContext.createOscillator();
+    const silentGain = audioContext.createGain();
+    
+    silentGain.gain.value = 0; // Silence
+    silentOscillator.connect(silentGain);
+    silentGain.connect(audioContext.destination);
+
+    silentOscillator.start();
+    silentOscillator.stop(audioContext.currentTime + 0.05); // Stops after 50ms
+}
+
+// Ensure the warm-up happens on the first user interaction
+document.addEventListener("touchstart", warmUpAudio, { once: true });
+
+// Now the real thump function
 function playThump() {
     if (audioContext.state === "suspended") {
-        audioContext.resume(); // Ensure audio context is running
+        audioContext.resume();
     }
 
     const oscillator = audioContext.createOscillator();
     const gainNode = audioContext.createGain();
 
-    oscillator.type = "sine"; 
-    oscillator.frequency.setValueAtTime(50, audioContext.currentTime); // 50 Hz for a deep thump
+    oscillator.type = "sine";
+    oscillator.frequency.setValueAtTime(50, audioContext.currentTime);
 
-    gainNode.gain.setValueAtTime(0.5, audioContext.currentTime); // Lower initial volume
-    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1); // Smooth fade out
+    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime); // Lower initial gain
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1); 
 
     oscillator.connect(gainNode);
     gainNode.connect(audioContext.destination);
 
     oscillator.start();
-    oscillator.stop(audioContext.currentTime + 0.1); // Stop after 100ms
+    oscillator.stop(audioContext.currentTime + 0.1);
 }
 
 });
