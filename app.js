@@ -164,27 +164,42 @@ function init(){
     input.style.outline = "none";
     document.body.appendChild(input);
 
-    canvas.addEventListener("touchend", (event) => {
-      const rect = canvas.getBoundingClientRect();
-      const touch = event.changedTouches[0];
-      const tapX = touch.clientX - rect.left;
-      const tapY = touch.clientY - rect.top;
-  
-      const centerX = canvas.width / 2;
-      const centerY = canvas.height / 2;
-      const tapRadius = 50; // 50px leeway
-  
-      const distance = Math.sqrt((tapX - centerX) ** 2 + (tapY - centerY) ** 2);
-  
-      if (distance <= tapRadius) {
-          playThump();
-          input.focus(); // This should now reliably open the keyboard
-      } else {
-          input.blur(); // Close keyboard if tapping elsewhere
-      }
-  
-      event.preventDefault(); // Stop accidental zooming/scrolling
-  });
+    let startX = null;
+let startY = null;
+
+canvas.addEventListener("pointerdown", (event) => {
+    const rect = canvas.getBoundingClientRect();
+    startX = event.clientX - rect.left;
+    startY = event.clientY - rect.top;
+});
+
+canvas.addEventListener("pointerup", (event) => {
+    if (startX === null || startY === null) return; // Ensure down event occurred
+
+    const rect = canvas.getBoundingClientRect();
+    const tapX = event.clientX - rect.left;
+    const tapY = event.clientY - rect.top;
+
+    const tapRadius = 50; // 50px leeway
+    const targetX = rect.width - tapRadius; // Bottom right X
+    const targetY = rect.height - tapRadius; // Bottom right Y
+
+    const startDistance = Math.sqrt((startX - targetX) ** 2 + (startY - targetY) ** 2);
+    const endDistance = Math.sqrt((tapX - targetX) ** 2 + (tapY - targetY) ** 2);
+
+    if (startDistance <= tapRadius && endDistance <= tapRadius) {
+        playThump();
+        input.focus(); // Ensure keyboard opens
+    } else {
+        input.blur();
+    }
+
+    // Reset start position
+    startX = null;
+    startY = null;
+
+    event.preventDefault(); // Prevent zooming/scrolling
+});
   
     //start the first frame request
     window.requestAnimationFrame(gameLoop);
