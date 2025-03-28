@@ -164,26 +164,27 @@ function init(){
     input.style.outline = "none";
     document.body.appendChild(input);
 
-    canvas.addEventListener("touchend", (event) => {
+    canvas.addEventListener("pointerdown", (event) => {
       const rect = canvas.getBoundingClientRect();
-      const touch = event.changedTouches[0];
-      const tapX = touch.clientX - rect.left;
-      const tapY = touch.clientY - rect.top;
+      const tapX = event.clientX - rect.left;
+      const tapY = event.clientY - rect.top;
   
-      const centerX = canvas.width / 2;
-      const centerY = canvas.height / 2;
       const tapRadius = 50; // 50px leeway
   
-      const distance = Math.sqrt((tapX - centerX) ** 2 + (tapY - centerY) ** 2);
+      // Bottom-right corner (within tapRadius from the edge)
+      const targetX = rect.width - tapRadius;
+      const targetY = rect.height - tapRadius;
+  
+      const distance = Math.sqrt((tapX - targetX) ** 2 + (tapY - targetY) ** 2);
   
       if (distance <= tapRadius) {
           playThump();
-          input.focus(); // This should now reliably open the keyboard
+          setTimeout(() => input.focus(), 0); // Ensure keyboard opens
       } else {
-          input.blur(); // Close keyboard if tapping elsewhere
+          input.blur();
       }
   
-      event.preventDefault(); // Stop accidental zooming/scrolling
+      event.preventDefault(); // Prevent zooming/scrolling
   });
   
     //start the first frame request
@@ -341,7 +342,7 @@ function playThump() {
   const gainNode = audioContext.createGain();
 
   oscillator.type = "sine";  // Low-frequency sine wave for a soft "thump"
-  oscillator.frequency.setValueAtTime(50, audioContext.currentTime); // 50 Hz for a deep bass feel
+  oscillator.frequency.setValueAtTime(25, audioContext.currentTime); // 50 Hz for a deep bass feel
 
   gainNode.gain.setValueAtTime(1, audioContext.currentTime);
   gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1); // Fade out quickly
